@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Mime;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
@@ -14,6 +18,13 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+
+using JellyBox.Views;
+using Microsoft.Extensions.DependencyInjection;
+using Jellyfin.Sdk;
+using JellyBox.Services;
+using JellyBox.ViewModels;
+using CommunityToolkit.Mvvm.DependencyInjection;
 
 namespace JellyBox
 {
@@ -55,6 +66,16 @@ namespace JellyBox
                     //TODO: Load state from previously suspended application
                 }
 
+                Ioc.Default.ConfigureServices(ConfigureServices());
+
+                // Initialize the sdk client settings. This only needs to happen once on startup.
+                var sdkClientSettings = Ioc.Default.GetRequiredService<SdkClientSettings>();
+                sdkClientSettings.InitializeClientSettings(
+                    "JellyBox",
+                    "0.1.0",
+                    "Sample Device",
+                    $"this-is-my-device-id-{Guid.NewGuid():N}");
+
                 // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
             }
@@ -66,7 +87,7 @@ namespace JellyBox
                     // When the navigation stack isn't restored navigate to the first page,
                     // configuring the new page by passing required information as a navigation
                     // parameter
-                    rootFrame.Navigate(typeof(MainPage), e.Arguments);
+                    rootFrame.Navigate(typeof(HomePage), e.Arguments);
                 }
                 // Ensure the current window is active
                 Window.Current.Activate();
@@ -95,6 +116,59 @@ namespace JellyBox
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
             deferral.Complete();
+        }
+
+        private static ServiceProvider ConfigureServices()
+        {
+            var serviceCollection = new ServiceCollection();
+
+            static HttpMessageHandler DefaultHttpClientHandlerDelegate(IServiceProvider service)
+                => new HttpClientHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.Deflate,
+                    //RequestHeaderEncodingSelector = (_, a) => Encoding.UTF8
+                };
+
+            // Add Http Client
+            serviceCollection.AddHttpClient("Default", c =>
+            {
+                c.DefaultRequestHeaders.UserAgent.Add(
+                    new ProductInfoHeaderValue(
+                        "JellyBox",
+                        "0.1.0"));
+
+                c.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json", 1.0));
+                c.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("*/*", 0.8));
+            })
+                .ConfigurePrimaryHttpMessageHandler(DefaultHttpClientHandlerDelegate);
+
+            // Add Jellyfin SDK services.
+            serviceCollection
+                .AddSingleton<SdkClientSettings>();
+            serviceCollection
+                .AddHttpClient<ISystemClient, SystemClient>()
+                .ConfigurePrimaryHttpMessageHandler(DefaultHttpClientHandlerDelegate);
+            serviceCollection
+                .AddHttpClient<IUserClient, UserClient>()
+                .ConfigurePrimaryHttpMessageHandler(DefaultHttpClientHandlerDelegate);
+            serviceCollection
+                .AddHttpClient<IUserViewsClient, UserViewsClient>()
+                .ConfigurePrimaryHttpMessageHandler(DefaultHttpClientHandlerDelegate);
+            serviceCollection
+                .AddHttpClient<IUserLibraryClient, UserLibraryClient>()
+                .ConfigurePrimaryHttpMessageHandler(DefaultHttpClientHandlerDelegate);
+
+            // Add Jellyfin service
+            serviceCollection.AddSingleton<JellyfinService>();
+
+
+            // Add ViewModels
+            serviceCollection.AddTransient<HomePageViewModel>();
+
+
+            return serviceCollection.BuildServiceProvider();
         }
     }
 }
