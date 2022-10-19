@@ -2,20 +2,25 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.VoiceCommands;
 using SystemException = Jellyfin.Sdk.SystemException;
 
 namespace JellyBox.Services
 {
-    public class JellyfinService
+    public class JellyfinService    
     {
         private readonly SdkClientSettings _sdkClientSettings;
+        private readonly IDynamicHlsClient _dynamicHlsClient;
+        private readonly IItemsClient _itemsClient;
         private readonly ISystemClient _systemClient;
         private readonly IUserClient _userClient;
         private readonly IUserViewsClient _userViewsClient;
 
         public PublicSystemInfo PublicSystemInfo { get; private set; }
+        public UserDto LoggedInUser { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SampleService"/> class.
@@ -26,11 +31,15 @@ namespace JellyBox.Services
         /// <param name="userViewsClient">Instance of the <see cref="IUserViewsClient"/> interface.</param>
         public JellyfinService(
             SdkClientSettings sdkClientSettings,
+            IDynamicHlsClient dynamicHlsClient,
+            IItemsClient itemsClient,
             ISystemClient systemClient,
             IUserClient userClient,
             IUserViewsClient userViewsClient)
         {
             _sdkClientSettings = sdkClientSettings;
+            _dynamicHlsClient = dynamicHlsClient;
+            _itemsClient = itemsClient;
             _systemClient = systemClient;
             _userClient = userClient;
             _userViewsClient = userViewsClient;
@@ -99,6 +108,12 @@ namespace JellyBox.Services
 
                     _sdkClientSettings.AccessToken = authenticationResult.AccessToken;
                     userDto = authenticationResult.User;
+
+                    await _userClient.GetCurrentUserAsync().ContinueWith(user =>
+                    {
+                        LoggedInUser = user.Result;
+                    });
+
                     Console.WriteLine("Authentication success.");
                     Console.WriteLine($"Welcome to Jellyfin - {userDto.Name}");
                     validUser = true;
@@ -114,5 +129,23 @@ namespace JellyBox.Services
             return userDto;
         }
 
+
+        public async Task<IReadOnlyList<BaseItemDto>> GetUserResumeItems()
+        {
+            var result = await _itemsClient.GetResumeItemsAsync(LoggedInUser.Id);
+            
+            return result.Items;
+        }
+
+        //public async void GetVideoStreamUri()
+        //{
+        //    var result = await _dynamicHlsClient.GetMasterHlsVideoPlaylistAsync()
+
+        //}
+
+        public Uri GetVideoHLSUri(Guid id, string mediaSourceId)
+        {
+            return new Uri($"{_sdkClientSettings.BaseUrl}/videos/{id}/master.m3u8?api_key={_sdkClientSettings.AccessToken}&MediaSourceId={mediaSourceId}");
+        }
     }
 }

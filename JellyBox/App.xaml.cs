@@ -66,7 +66,7 @@ namespace JellyBox
                     //TODO: Load state from previously suspended application
                 }
 
-                Ioc.Default.ConfigureServices(ConfigureServices());
+                Ioc.Default.ConfigureServices(ConfigureServices(rootFrame));
 
                 // Initialize the sdk client settings. This only needs to happen once on startup.
                 var sdkClientSettings = Ioc.Default.GetRequiredService<SdkClientSettings>();
@@ -118,7 +118,7 @@ namespace JellyBox
             deferral.Complete();
         }
 
-        private static ServiceProvider ConfigureServices()
+        private static ServiceProvider ConfigureServices(Frame frame)
         {
             var serviceCollection = new ServiceCollection();
 
@@ -128,6 +128,10 @@ namespace JellyBox
                     AutomaticDecompression = DecompressionMethods.Deflate,
                     //RequestHeaderEncodingSelector = (_, a) => Encoding.UTF8
                 };
+
+            // Add NavigationService
+            serviceCollection
+                .AddSingleton<INavigationService>(new NavigationService(frame));
 
             // Add Http Client
             serviceCollection.AddHttpClient("Default", c =>
@@ -147,6 +151,12 @@ namespace JellyBox
             // Add Jellyfin SDK services.
             serviceCollection
                 .AddSingleton<SdkClientSettings>();
+            serviceCollection
+                .AddHttpClient<IDynamicHlsClient, DynamicHlsClient>()
+                .ConfigurePrimaryHttpMessageHandler(DefaultHttpClientHandlerDelegate);
+            serviceCollection
+                .AddHttpClient<IItemsClient, ItemsClient>()
+                .ConfigurePrimaryHttpMessageHandler(DefaultHttpClientHandlerDelegate);
             serviceCollection
                 .AddHttpClient<ISystemClient, SystemClient>()
                 .ConfigurePrimaryHttpMessageHandler(DefaultHttpClientHandlerDelegate);

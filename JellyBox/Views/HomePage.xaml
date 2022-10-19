@@ -5,6 +5,10 @@
     xmlns:local="using:JellyBox.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:jf="using:Jellyfin.Sdk"
+    xmlns:libvlc="using:LibVLCSharp.Platforms.UWP"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:interactions="using:Microsoft.Xaml.Interactions.Core"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -13,6 +17,25 @@
             <Button Command="{x:Bind ViewModel.AttemptLoginCommand}">Test Login</Button>
             <TextBlock Text="{x:Bind ViewModel.PublicSystemInfo.ServerName, Mode=OneWay}"/>
             <TextBlock Text="{x:Bind ViewModel.LoggedInUser.Name, Mode=OneWay}"/>
+            <ListView ItemsSource="{x:Bind ViewModel.Items}" SelectedItem="{x:Bind ViewModel.SelectedItem, Mode=TwoWay}">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="jf:BaseItemDto">
+                        <StackPanel>
+                            <TextBlock Text="{x:Bind Name}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <TextBlock Text="{x:Bind ViewModel.SelectedItem.Name, Mode=OneWay}"></TextBlock>
+            <Button Command="{x:Bind ViewModel.PlayCommand}">Play</Button>
+            <libvlc:VideoView MediaPlayer="{x:Bind ViewModel.MediaPlayer}" Height="400">
+                <interactivity:Interaction.Behaviors>
+                    <interactions:EventTriggerBehavior EventName="Initialized">
+                        <interactions:InvokeCommandAction Command="{x:Bind ViewModel.InitialiseCommand}"/>
+                    </interactions:EventTriggerBehavior>
+                </interactivity:Interaction.Behaviors>
+            </libvlc:VideoView>
+            
         </StackPanel>
     </Grid>
 </Page>
