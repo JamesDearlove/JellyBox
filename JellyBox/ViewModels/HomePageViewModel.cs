@@ -76,5 +76,11 @@ namespace JellyBox.ViewModels
             MediaPlayer.Play(media);
         }
 
+        [RelayCommand]
+        public void PlayPage()
+        {
+            Ioc.Default.GetService<INavigationService>().Navigate<PlayerPageViewModel>("");
+        }
+
     }
 }

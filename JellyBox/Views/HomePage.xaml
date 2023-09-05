@@ -28,7 +28,8 @@
             </ListView>
             <TextBlock Text="{x:Bind ViewModel.SelectedItem.Name, Mode=OneWay}"></TextBlock>
             <Button Command="{x:Bind ViewModel.PlayCommand}">Play</Button>
-            <libvlc:VideoView MediaPlayer="{x:Bind ViewModel.MediaPlayer}" Height="400">
+            <Button Command="{x:Bind ViewModel.PlayPageCommand}">Open Player</Button>
+            <libvlc:VideoView MediaPlayer="{x:Bind ViewModel.MediaPlayer}" Width="400" Height="400">
                 <interactivity:Interaction.Behaviors>
                     <interactions:EventTriggerBehavior EventName="Initialized">
                         <interactions:InvokeCommandAction Command="{x:Bind ViewModel.InitialiseCommand}"/>

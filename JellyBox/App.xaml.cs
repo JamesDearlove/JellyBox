@@ -25,6 +25,7 @@ using Jellyfin.Sdk;
 using JellyBox.Services;
 using JellyBox.ViewModels;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using Windows.UI.Core;
 
 namespace JellyBox
 {
@@ -40,6 +41,13 @@ namespace JellyBox
         public App()
         {
             this.InitializeComponent();
+
+            // Disable Xbox mouse cursor
+            this.RequiresPointerMode = Windows.UI.Xaml.ApplicationRequiresPointerMode.WhenRequested;
+
+            // Disable default scaling
+            bool result = Windows.UI.ViewManagement.ApplicationViewScaling.TrySetDisableLayoutScaling(true);
+
             this.Suspending += OnSuspending;
         }
 
@@ -59,6 +67,7 @@ namespace JellyBox
                 // Create a Frame to act as the navigation context and navigate to the first page
                 rootFrame = new Frame();
 
+                rootFrame.Navigated += OnNavigated;
                 rootFrame.NavigationFailed += OnNavigationFailed;
 
                 if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
@@ -89,8 +98,45 @@ namespace JellyBox
                     // parameter
                     rootFrame.Navigate(typeof(HomePage), e.Arguments);
                 }
+                // Bind back button
+                SystemNavigationManager.GetForCurrentView().BackRequested += OnBackRequested;
+
+                SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility =
+                    rootFrame.CanGoBack ?
+                    AppViewBackButtonVisibility.Visible :
+                    AppViewBackButtonVisibility.Collapsed;
+
                 // Ensure the current window is active
                 Window.Current.Activate();
+            }
+        }
+
+        /// <summary>
+        /// Invoked when the frame is navigated on.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnNavigated(object sender, NavigationEventArgs e)
+        {
+            // Each time a navigation event occurs, update the Back button's visibility
+            SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility =
+                ((Frame)sender).CanGoBack ?
+                AppViewBackButtonVisibility.Visible :
+                AppViewBackButtonVisibility.Collapsed;
+        }
+
+        /// <summary>
+        /// Invoked when the back button is pressed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnBackRequested(object sender, BackRequestedEventArgs e)
+        {
+            Frame rootFrame = Window.Current.Content as Frame;
+            if (rootFrame.CanGoBack)
+            {
+                rootFrame.GoBack();
+                e.Handled = true;
             }
         }
 
@@ -176,6 +222,7 @@ namespace JellyBox
 
             // Add ViewModels
             serviceCollection.AddTransient<HomePageViewModel>();
+            serviceCollection.AddTransient<PlayerPageViewModel>();
 
 
             return serviceCollection.BuildServiceProvider();

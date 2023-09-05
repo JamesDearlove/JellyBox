@@ -21,6 +21,7 @@ namespace JellyBox.Services
         private readonly Dictionary<Type, Type> viewMapping = new()
         {
             [typeof(HomePageViewModel)] = typeof(HomePage),
+            [typeof(PlayerPageViewModel)] = typeof(PlayerPage),
         };
 
         private readonly Frame _frame;
