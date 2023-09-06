@@ -130,6 +130,78 @@ namespace JellyBox.Services
         }
 
 
+        /// <summary>
+        /// Connects to server that is stored in the app data. Throws exception if no server is defined.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Throws if a server URI is not found.</exception>
+        public Task<PublicSystemInfo> ConnectToServer()
+        {
+            var settings = Ioc.Default.GetService<SettingService>();
+            var serverUri = settings.ServerUri;
+
+            if (serverUri == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            return ConnectToServer(settings.ServerUri);
+        }
+
+        /// <summary>
+        /// Connects to server at the given URI.
+        /// </summary>
+        /// <param name="serverUri">URI of the server to connect to.</param>
+        /// <returns></returns>
+        public Task<PublicSystemInfo> ConnectToServer(string serverUri)
+        {
+            _sdkClientSettings.BaseUrl = serverUri;
+
+            return _systemClient.GetPublicSystemInfoAsync();
+        }
+
+        /// <summary>
+        /// Authenticates with a username and password to the configured server.
+        /// Run ConnectToServer before running this.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public async Task<AuthenticationResult> AuthWithPassword(string username, string password)
+        {
+            var authResult = await _userClient.AuthenticateUserByNameAsync(
+                new AuthenticateUserByName { Username = username, Pw = password }
+            ).ConfigureAwait(false);
+
+            _sdkClientSettings.AccessToken = authResult.AccessToken;
+
+            LoggedInUser = authResult.User;
+
+            return authResult;
+        }
+
+        /// <summary>
+        /// Authenticates with previously stored AccessToken. Throws exception if no token is found.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public Task<UserDto> AuthWithToken()
+        {
+            var settings = Ioc.Default.GetService<SettingService>();
+            var token = settings.AccessToken;
+
+            if (token == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            _sdkClientSettings.AccessToken = token;
+            return _userClient.GetCurrentUserAsync();
+        }
+
+        public Task<UserDto> GetCurrentUser() => _userClient.GetCurrentUserAsync();
+
+
         public async Task<IReadOnlyList<BaseItemDto>> GetUserResumeItems()
         {
             var result = await _itemsClient.GetResumeItemsAsync(LoggedInUser.Id);

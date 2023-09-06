@@ -179,6 +179,9 @@ namespace JellyBox
             serviceCollection
                 .AddSingleton<INavigationService>(new NavigationService(frame));
 
+            // Add SettingService
+            serviceCollection.AddSingleton<SettingService>();
+
             // Add Http Client
             serviceCollection.AddHttpClient("Default", c =>
             {

@@ -23,7 +23,7 @@ namespace JellyBox.ViewModels
         public ObservableCollection<BaseItemDto> Items { get; } = new ObservableCollection<BaseItemDto>();
 
         [ObservableProperty]
-        private string username = "Not Attempted";
+        private string username = "Not Logged In";
 
         [ObservableProperty]
         private UserDto? loggedInUser;
@@ -41,46 +41,35 @@ namespace JellyBox.ViewModels
             jellyfinService = Ioc.Default.GetService<JellyfinService>();
         }
 
-        [RelayCommand]
-        private async void AttemptLogin()
-        {
-            var result = await jellyfinService.RunAsync();
 
-            LoggedInUser = result;
-            PublicSystemInfo = jellyfinService.PublicSystemInfo;
-
-            var items = await jellyfinService.GetUserResumeItems();
-            foreach (var item in items)
-            {
-                Items.Add(item);
-            }
-        }
-
-        private LibVLC LibVLC { get; set; }
-
-        [ObservableProperty]
-        private MediaPlayer mediaPlayer;
-
-        [RelayCommand]
-        public void Initialise(InitializedEventArgs eventArgs)
-        {
-            LibVLC = new LibVLC(enableDebugLogs: true, eventArgs.SwapChainOptions);
-            MediaPlayer = new MediaPlayer(LibVLC);
-        }
-
-        [RelayCommand]
-        public void Play()
-        {
-            var uri = jellyfinService.GetVideoHLSUri(selectedItem.Id, selectedItem.Id.ToString("N"));
-            using var media = new Media(LibVLC, uri);
-            MediaPlayer.Play(media);
-        }
 
         [RelayCommand]
         public void PlayPage()
         {
             Ioc.Default.GetService<INavigationService>().Navigate<PlayerPageViewModel>("");
         }
+
+
+        [RelayCommand]
+        private async void DoAuth()
+        {
+            var systemInfo = await jellyfinService.ConnectToServer("");
+
+            PublicSystemInfo = systemInfo;
+
+            var authResult = await jellyfinService.AuthWithPassword("", "");
+
+            LoggedInUser = authResult.User;
+            Username = LoggedInUser.Name;
+            
+            var items = await jellyfinService.GetUserResumeItems();
+            foreach (var item in items)
+            {
+                Items.Add(item);
+                
+            }
+        }
+
 
     }
 }
