@@ -31,5 +31,6 @@ namespace JellyBox.Views
         }
 
         public HomePageViewModel ViewModel => (HomePageViewModel)DataContext;
+
     }
 }

@@ -8,10 +8,20 @@
     xmlns:jf="using:Jellyfin.Sdk"
     xmlns:jb="using:JellyBox"
     xmlns:libvlc="using:LibVLCSharp.Platforms.UWP"
-    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
-    xmlns:interactions="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core" 
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity" xmlns:models="using:JellyBox.Models"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <interactivity:Interaction.Behaviors>
+        <core:EventTriggerBehavior EventName="Loading">
+            <core:EventTriggerBehavior.Actions>
+                <core:InvokeCommandAction Command="{x:Bind ViewModel.LoadPageCommand}" />
+            </core:EventTriggerBehavior.Actions>
+        </core:EventTriggerBehavior>
+    </interactivity:Interaction.Behaviors>
+
+
 
     <Page.Resources>
 
@@ -19,7 +29,7 @@
 
 
         <!--<DataTemplate x:Key="ContinueWatchingTemplate" x:DataType="models:BaseMediaItem">-->
-        <DataTemplate x:Key="ContinueWatchingTemplate">
+        <DataTemplate x:Key="ContinueWatchingTemplate" x:DataType="models:BaseMediaItem">
             <Grid Width="350" Height="260">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -38,7 +48,7 @@
                     <Grid VerticalAlignment="Bottom" Height="8" HorizontalAlignment="Stretch" Background="#9F000000">
                         <Grid HorizontalAlignment="Stretch" Background="{ThemeResource SystemAccentColorLight1}">
                             <Grid.RenderTransform>
-                                <ScaleTransform ScaleX="{Binding CompletionPercentage, Converter={StaticResource PercentageConverter}}"/>
+                                <ScaleTransform ScaleX="{Binding UserData.PlayedPercentage, Converter={StaticResource PercentageConverter}}"/>
                             </Grid.RenderTransform>
                         </Grid>
                     </Grid>
@@ -50,8 +60,8 @@
                         </Style>
                     </StackPanel.Resources>
 
-                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
-                    <TextBlock Text="Subtitle"/>
+                    <TextBlock Text="{Binding PlaybackTitle}" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding PlaybackSubtitle}"/>
                 </StackPanel>
             </Grid>
         </DataTemplate>
@@ -113,7 +123,7 @@
                           IsItemClickEnabled="True"
                           Margin="-10,0,0,0"
                           ItemTemplate="{StaticResource ContinueWatchingTemplate}"
-                          ItemsSource="{x:Bind ViewModel.Items}">
+                          ItemsSource="{x:Bind ViewModel.ContinueWatchingItems}">
                     <!--ItemClick="ContinueWatchingGrid_ItemClick"-->
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">

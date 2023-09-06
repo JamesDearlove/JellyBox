@@ -2,10 +2,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
+using JellyBox.Models;
 using JellyBox.Services;
 using Jellyfin.Sdk;
 using LibVLCSharp.Platforms.UWP;
 using LibVLCSharp.Shared;
+using Microsoft.Toolkit.Uwp.UI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,7 +22,7 @@ namespace JellyBox.ViewModels
     [INotifyPropertyChanged]
     public partial class HomePageViewModel
     {
-        public ObservableCollection<BaseItemDto> Items { get; } = new ObservableCollection<BaseItemDto>();
+        public ObservableCollection<BaseMediaItem> ContinueWatchingItems { get; } = new ObservableCollection<BaseMediaItem>();
 
         [ObservableProperty]
         private string username = "Not Logged In";
@@ -51,13 +53,20 @@ namespace JellyBox.ViewModels
 
 
         [RelayCommand]
+        public void LoadPage()
+        {
+            DoAuth();
+        }
+
+
+        [RelayCommand]
         private async void DoAuth()
         {
-            var systemInfo = await jellyfinService.ConnectToServer("");
+            var systemInfo = await jellyfinService.ConnectToServer("https://jimmyfin.jimmyd.dev");
 
             PublicSystemInfo = systemInfo;
 
-            var authResult = await jellyfinService.AuthWithPassword("", "");
+            var authResult = await jellyfinService.AuthWithPassword("anotheruser", "");
 
             LoggedInUser = authResult.User;
             Username = LoggedInUser.Name;
@@ -65,11 +74,25 @@ namespace JellyBox.ViewModels
             var items = await jellyfinService.GetUserResumeItems();
             foreach (var item in items)
             {
-                Items.Add(item);
-                
+                ContinueWatchingItems.Add(item);
+            }
+
+            PopulateImages();
+        }
+
+        private async void PopulateImages()
+        {
+            foreach (var cwItem in ContinueWatchingItems)
+            {
+                var uri = jellyfinService.GetImageUri(cwItem.Id, ImageType.Primary, 450, 255);
+                cwItem.PrimaryImage = await ImageCache.Instance.GetFromCacheAsync(uri);
             }
         }
 
+        [RelayCommand]
+        public void ContinueWatching()
+        {
 
+        }
     }
 }

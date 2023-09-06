@@ -82,8 +82,8 @@ namespace JellyBox
                 sdkClientSettings.InitializeClientSettings(
                     "JellyBox",
                     "0.1.0",
-                    "Sample Device",
-                    $"this-is-my-device-id-{Guid.NewGuid():N}");
+                    "Windows-Based",
+                    $"uwp-{Guid.NewGuid():N}");
 
                 // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
@@ -217,6 +217,9 @@ namespace JellyBox
                 .ConfigurePrimaryHttpMessageHandler(DefaultHttpClientHandlerDelegate);
             serviceCollection
                 .AddHttpClient<IUserLibraryClient, UserLibraryClient>()
+                .ConfigurePrimaryHttpMessageHandler(DefaultHttpClientHandlerDelegate);
+            serviceCollection
+                .AddHttpClient<ITvShowsClient, TvShowsClient>()
                 .ConfigurePrimaryHttpMessageHandler(DefaultHttpClientHandlerDelegate);
 
             // Add Jellyfin service

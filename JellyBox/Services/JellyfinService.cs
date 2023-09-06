@@ -1,4 +1,6 @@
-﻿using Jellyfin.Sdk;
+﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using JellyBox.Models;
+using Jellyfin.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +20,12 @@ namespace JellyBox.Services
         private readonly ISystemClient _systemClient;
         private readonly IUserClient _userClient;
         private readonly IUserViewsClient _userViewsClient;
+        private readonly ITvShowsClient _tvShowsClient;
 
         public PublicSystemInfo PublicSystemInfo { get; private set; }
         public UserDto LoggedInUser { get; private set; }
+
+        public Blurhash.UWP.Decoder BlurhashDecoder = new Blurhash.UWP.Decoder();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SampleService"/> class.
@@ -35,7 +40,8 @@ namespace JellyBox.Services
             IItemsClient itemsClient,
             ISystemClient systemClient,
             IUserClient userClient,
-            IUserViewsClient userViewsClient)
+            IUserViewsClient userViewsClient,
+            ITvShowsClient tvShowsClient)
         {
             _sdkClientSettings = sdkClientSettings;
             _dynamicHlsClient = dynamicHlsClient;
@@ -43,6 +49,7 @@ namespace JellyBox.Services
             _systemClient = systemClient;
             _userClient = userClient;
             _userViewsClient = userViewsClient;
+            _tvShowsClient = tvShowsClient;
         }
 
         // Temp code taken directly from SDK sample app
@@ -55,7 +62,8 @@ namespace JellyBox.Services
                 // Url must be proto://host/path
                 // ex: https://demo.jellyfin.org/stable
                 Console.Write("Server Url: ");
-                var host = "https://demo.jellyfin.org/stable";
+                //var host = "https://demo.jellyfin.org/stable";
+                var host = "https://jimmyfin.jimmyd.dev";
 
                 _sdkClientSettings.BaseUrl = host;
                 try
@@ -91,7 +99,7 @@ namespace JellyBox.Services
                 try
                 {
                     Console.Write("Username: ");
-                    var username = "demo";
+                    var username = "anotheruser";
 
                     Console.Write("Password: ");
                     var password = "";
@@ -201,13 +209,42 @@ namespace JellyBox.Services
 
         public Task<UserDto> GetCurrentUser() => _userClient.GetCurrentUserAsync();
 
-
-        public async Task<IReadOnlyList<BaseItemDto>> GetUserResumeItems()
+        public BaseMediaItem ConvertBaseItemDto(BaseItemDto itemDto)
         {
-            var result = await _itemsClient.GetResumeItemsAsync(LoggedInUser.Id);
-            
-            return result.Items;
+            switch (itemDto.Type)
+            {
+                case BaseItemKind.Movie:
+                    return new Movie(itemDto);
+                case BaseItemKind.Series:
+                    return new TvShowSeries(itemDto);
+                case BaseItemKind.Season:
+                    return new TvShowSeason(itemDto);
+                case BaseItemKind.Episode:
+                    return new TvShowEpisode(itemDto);
+                default:
+                    return new BaseMediaItem(itemDto);
+            }
         }
+
+        public async Task<IList<BaseMediaItem>> GetUserResumeItems()
+        {
+            var apiResult = await _itemsClient.GetResumeItemsAsync(LoggedInUser.Id);
+            return apiResult.Items.Select(x => ConvertBaseItemDto(x)).ToList();
+        }
+
+
+        public async Task<IList<TvShowSeason>> GetSeriesSeasons(Guid id)
+        {
+            var apiResult = await _tvShowsClient.GetSeasonsAsync(id);
+            return apiResult.Items.Select(x => new TvShowSeason(x)).ToList();
+        }
+
+        public async Task<IList<TvShowEpisode>> GetSeriesEpisodes(Guid seriesId, Guid seasonId)
+        {
+            var apiResult = await _tvShowsClient.GetEpisodesAsync(seriesId, seasonId: seasonId);
+            return apiResult.Items.Select(x => new TvShowEpisode(x)).ToList();
+        }
+
 
         //public async void GetVideoStreamUri()
         //{
@@ -218,6 +255,16 @@ namespace JellyBox.Services
         public Uri GetVideoHLSUri(Guid id, string mediaSourceId)
         {
             return new Uri($"{_sdkClientSettings.BaseUrl}/videos/{id}/master.m3u8?api_key={_sdkClientSettings.AccessToken}&MediaSourceId={mediaSourceId}");
+        }
+
+        public Uri GetImageUri(Guid itemId, ImageType imageType)
+        {
+            return new Uri($"{_sdkClientSettings.BaseUrl}/items/{itemId}/Images/{imageType}?api_key={_sdkClientSettings.AccessToken}");
+        }
+
+        public Uri GetImageUri(Guid itemId, ImageType imageType, int width, int height)
+        {
+            return new Uri($"{_sdkClientSettings.BaseUrl}/items/{itemId}/Images/{imageType}?api_key={_sdkClientSettings.AccessToken}&width={width}&height={height}");
         }
     }
 }
