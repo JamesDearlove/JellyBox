@@ -8,18 +8,18 @@
     xmlns:jf="using:Jellyfin.Sdk"
     xmlns:jb="using:JellyBox"
     xmlns:libvlc="using:LibVLCSharp.Platforms.UWP"
-    xmlns:core="using:Microsoft.Xaml.Interactions.Core" 
-    xmlns:interactivity="using:Microsoft.Xaml.Interactivity" xmlns:models="using:JellyBox.Models"
+    xmlns:i="using:Microsoft.Xaml.Interactivity" xmlns:models="using:JellyBox.Models"
+    xmlns:ic="using:Microsoft.Xaml.Interactions.Core" 
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <interactivity:Interaction.Behaviors>
-        <core:EventTriggerBehavior EventName="Loading">
-            <core:EventTriggerBehavior.Actions>
-                <core:InvokeCommandAction Command="{x:Bind ViewModel.LoadPageCommand}" />
-            </core:EventTriggerBehavior.Actions>
-        </core:EventTriggerBehavior>
-    </interactivity:Interaction.Behaviors>
+    <i:Interaction.Behaviors>
+        <ic:EventTriggerBehavior EventName="Loading">
+            <ic:EventTriggerBehavior.Actions>
+                <ic:InvokeCommandAction Command="{x:Bind ViewModel.LoadPageCommand}" />
+            </ic:EventTriggerBehavior.Actions>
+        </ic:EventTriggerBehavior>
+    </i:Interaction.Behaviors>
 
 
 
@@ -124,6 +124,12 @@
                           Margin="-10,0,0,0"
                           ItemTemplate="{StaticResource ContinueWatchingTemplate}"
                           ItemsSource="{x:Bind ViewModel.ContinueWatchingItems}">
+                    <i:Interaction.Behaviors >
+                        <ic:EventTriggerBehavior  EventName="ItemClick">
+                            <ic:InvokeCommandAction  Command="{x:Bind ViewModel.ContinueWatchingClickCommand}" 
+                                                     CommandParameter="{Binding SelectedItem, ElementName=ContinueWatchingGrid}" />
+                        </ic:EventTriggerBehavior>
+                    </i:Interaction.Behaviors>
                     <!--ItemClick="ContinueWatchingGrid_ItemClick"-->
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">

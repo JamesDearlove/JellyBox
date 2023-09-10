@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using JellyBox.Models;
 using JellyBox.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -31,5 +32,15 @@ namespace JellyBox.Views
         }
 
         public PlayerPageViewModel ViewModel => (PlayerPageViewModel)DataContext;
+
+
+        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            if (e.Parameter is BaseMediaItem item)
+            {
+                await ViewModel.InitialiseAsync(item);
+            }
+        }
     }
 }

@@ -90,9 +90,12 @@ namespace JellyBox.ViewModels
         }
 
         [RelayCommand]
-        public void ContinueWatching()
+        public void ContinueWatchingClick(BaseMediaItem clickedItem)
         {
-
+            if (clickedItem != null)
+            {
+                Ioc.Default.GetService<INavigationService>().Navigate<PlayerPageViewModel>(clickedItem);
+            }
         }
     }
 }

@@ -8,10 +8,17 @@
     xmlns:libvlc="using:LibVLCSharp.Platforms.UWP"
     xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
     xmlns:interactions="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:converters="using:Microsoft.Toolkit.Uwp.UI.Converters"
+    xmlns:media="using:Microsoft.Toolkit.Uwp.UI.Media"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="Black">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
+    </Page.Resources>
 
     <Grid>
+        <ProgressRing IsActive="True" Width="100" Height="100" />
         <libvlc:VideoView MediaPlayer="{x:Bind ViewModel.MediaPlayer}">
             <interactivity:Interaction.Behaviors>
                 <interactions:EventTriggerBehavior EventName="Initialized">
@@ -19,5 +26,34 @@
                 </interactions:EventTriggerBehavior>
             </interactivity:Interaction.Behaviors>
         </libvlc:VideoView>
+        <Grid Visibility="{x:Bind ViewModel.ControlsVisible, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}">
+            <!--Background="{ThemeResource SystemControlPageBackgroundAltMediumBrush}"-->
+
+            <Grid Height="120" VerticalAlignment="Top" Background="{ThemeResource SystemControlPageBackgroundAltMediumBrush}">
+                <!--<Grid.Background>
+                    <media:AcrylicBrush
+                        BackgroundSource="Backdrop"
+                        TintColor="DimGray"
+                        TintOpacity="0.25"
+                        BlurAmount="20"
+                        TextureUri="ms-appx:///Assets/BrushAssets/NoiseTexture.png"/>
+                </Grid.Background>-->
+
+
+                <StackPanel Margin="30" >
+                    <TextBlock Text="{x:Bind ViewModel.Item.PlaybackTitle}" Style="{ThemeResource TitleTextBlockStyle}"></TextBlock>
+                    <TextBlock Text="{x:Bind ViewModel.Item.PlaybackSubtitle}" Style="{ThemeResource SubtitleTextBlockStyle}"></TextBlock>
+                </StackPanel>
+            </Grid>
+            <Grid Height="120" VerticalAlignment="Bottom" Background="{ThemeResource SystemControlPageBackgroundAltMediumBrush}">
+                <StackPanel Margin="30" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button VerticalAlignment="Bottom" Command="{x:Bind ViewModel.PlayCommand}">Previous</Button>
+                    <Button VerticalAlignment="Bottom" Command="{x:Bind ViewModel.PlayCommand}">Play/Pause</Button>
+                    <Button VerticalAlignment="Bottom" Command="{x:Bind ViewModel.PlayCommand}">Next</Button>
+                </StackPanel>
+            </Grid>
+            
+        </Grid>
+
     </Grid>
 </Page>
