@@ -24,35 +24,36 @@
                 <interactions:EventTriggerBehavior EventName="Initialized">
                     <interactions:InvokeCommandAction Command="{x:Bind ViewModel.InitialiseCommand}"/>
                 </interactions:EventTriggerBehavior>
+                <!-- TODO: Another hacky work around for media being held in background -->
+                <interactions:EventTriggerBehavior EventName="Unloaded">
+                    <interactions:InvokeCommandAction Command="{x:Bind ViewModel.StopCommand}"/>
+                </interactions:EventTriggerBehavior>
             </interactivity:Interaction.Behaviors>
         </libvlc:VideoView>
         <Grid Visibility="{x:Bind ViewModel.ControlsVisible, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}">
-            <!--Background="{ThemeResource SystemControlPageBackgroundAltMediumBrush}"-->
-
             <Grid Height="120" VerticalAlignment="Top" Background="{ThemeResource SystemControlPageBackgroundAltMediumBrush}">
-                <!--<Grid.Background>
-                    <media:AcrylicBrush
-                        BackgroundSource="Backdrop"
-                        TintColor="DimGray"
-                        TintOpacity="0.25"
-                        BlurAmount="20"
-                        TextureUri="ms-appx:///Assets/BrushAssets/NoiseTexture.png"/>
-                </Grid.Background>-->
-
 
                 <StackPanel Margin="30" >
-                    <TextBlock Text="{x:Bind ViewModel.Item.PlaybackTitle}" Style="{ThemeResource TitleTextBlockStyle}"></TextBlock>
-                    <TextBlock Text="{x:Bind ViewModel.Item.PlaybackSubtitle}" Style="{ThemeResource SubtitleTextBlockStyle}"></TextBlock>
+                    <TextBlock 
+                        Text="{x:Bind ViewModel.Item.PlaybackTitle}" 
+                        d:Text="Title" 
+                        Style="{ThemeResource TitleTextBlockStyle}"
+                    />
+                    <TextBlock 
+                        Text="{x:Bind ViewModel.Item.PlaybackSubtitle}" 
+                        d:Text="Subtitle" 
+                        Style="{ThemeResource SubtitleTextBlockStyle}"/>
                 </StackPanel>
             </Grid>
             <Grid Height="120" VerticalAlignment="Bottom" Background="{ThemeResource SystemControlPageBackgroundAltMediumBrush}">
-                <StackPanel Margin="30" Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="{x:Bind ViewModel.MediaPlayer.Time, Mode=OneWay}" d:Text="00:00"/>
+                <StackPanel Margin="30" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="5">
                     <Button VerticalAlignment="Bottom" Command="{x:Bind ViewModel.PlayCommand}">Previous</Button>
                     <Button VerticalAlignment="Bottom" Command="{x:Bind ViewModel.PlayCommand}">Play/Pause</Button>
                     <Button VerticalAlignment="Bottom" Command="{x:Bind ViewModel.PlayCommand}">Next</Button>
                 </StackPanel>
             </Grid>
-            
+
         </Grid>
 
     </Grid>

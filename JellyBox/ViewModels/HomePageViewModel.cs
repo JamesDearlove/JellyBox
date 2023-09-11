@@ -33,9 +33,6 @@ namespace JellyBox.ViewModels
         [ObservableProperty]
         private PublicSystemInfo? publicSystemInfo;
 
-        [ObservableProperty]
-        public BaseItemDto? selectedItem;
-
         private readonly JellyfinService jellyfinService;
 
         public HomePageViewModel()

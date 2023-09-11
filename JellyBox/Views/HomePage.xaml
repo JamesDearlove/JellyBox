@@ -5,11 +5,11 @@
     xmlns:local="using:JellyBox.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:jf="using:Jellyfin.Sdk"
     xmlns:jb="using:JellyBox"
-    xmlns:libvlc="using:LibVLCSharp.Platforms.UWP"
-    xmlns:i="using:Microsoft.Xaml.Interactivity" xmlns:models="using:JellyBox.Models"
+    xmlns:models="using:JellyBox.Models"
+    xmlns:i="using:Microsoft.Xaml.Interactivity" 
     xmlns:ic="using:Microsoft.Xaml.Interactions.Core" 
+    xmlns:ui="using:Microsoft.Toolkit.Uwp.UI"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -66,8 +66,8 @@
             </Grid>
         </DataTemplate>
     </Page.Resources>
-    
-    
+
+
     <Grid Margin="60,40">
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
@@ -116,21 +116,17 @@
                 <!-- TODO: Turn these into a control -->
                 <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}">Continue Watching</TextBlock>
                 <ListView x:Name="ContinueWatchingGrid"
-                          SelectionMode="Single"
+                          SelectionMode="None"
                           ScrollViewer.HorizontalScrollBarVisibility="Auto"
                           ScrollViewer.HorizontalScrollMode="Enabled"
                           ScrollViewer.IsHorizontalRailEnabled="True"
                           IsItemClickEnabled="True"
                           Margin="-10,0,0,0"
                           ItemTemplate="{StaticResource ContinueWatchingTemplate}"
-                          ItemsSource="{x:Bind ViewModel.ContinueWatchingItems}">
-                    <i:Interaction.Behaviors >
-                        <ic:EventTriggerBehavior  EventName="ItemClick">
-                            <ic:InvokeCommandAction  Command="{x:Bind ViewModel.ContinueWatchingClickCommand}" 
-                                                     CommandParameter="{Binding SelectedItem, ElementName=ContinueWatchingGrid}" />
-                        </ic:EventTriggerBehavior>
-                    </i:Interaction.Behaviors>
-                    <!--ItemClick="ContinueWatchingGrid_ItemClick"-->
+                          ItemsSource="{x:Bind ViewModel.ContinueWatchingItems}"
+                          ui:ListViewExtensions.Command="{x:Bind ViewModel.ContinueWatchingClickCommand, Mode=OneWay}" 
+                          >
+
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="Margin" Value="10,0,0,0" />

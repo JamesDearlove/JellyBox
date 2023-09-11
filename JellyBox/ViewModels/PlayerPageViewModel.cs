@@ -19,19 +19,17 @@ namespace JellyBox.ViewModels
     {
         private readonly JellyfinService jellyfinService;
 
-        private BaseMediaItem _item;
-        public BaseMediaItem Item
-        {
-            get { return _item; }
-            set { SetProperty(ref _item, value); }
-        }
+        [ObservableProperty]
+        private BaseMediaItem item;
 
-        private bool _controlsVisible = true;
-        public bool ControlsVisible
-        {
-            get { return _controlsVisible; }
-            set { SetProperty(ref _controlsVisible, value); }
-        }
+        [ObservableProperty]
+        private bool controlsVisible = true;
+
+        // VLC player requirements
+        private LibVLC LibVLC { get; set; }
+
+        [ObservableProperty]
+        private MediaPlayer mediaPlayer;
 
         public PlayerPageViewModel()
         {
@@ -44,11 +42,6 @@ namespace JellyBox.ViewModels
             MediaPlayer.Dispose();
         }
 
-
-        private LibVLC LibVLC { get; set; }
-
-        [ObservableProperty]
-        private MediaPlayer mediaPlayer;
 
         [RelayCommand]
         public void Initialise(InitializedEventArgs eventArgs)
@@ -63,6 +56,13 @@ namespace JellyBox.ViewModels
                 using var media = new Media(LibVLC, uri);
                 MediaPlayer.Play(media);
                 MediaPlayer.Media.StateChanged += Media_StateChanged;
+
+                // TODO: This is very dirty, check if the user wants to resume first.
+                if (Item.UserData.PlaybackPositionTicks != 0)
+                {
+                    MediaPlayer.SeekTo(TimeSpan.FromTicks(Item.UserData.PlaybackPositionTicks));
+                }
+
             }
         }
 
@@ -110,6 +110,12 @@ namespace JellyBox.ViewModels
             {
                 MediaPlayer.Play();
             }
+        }
+
+        [RelayCommand]
+        public void Stop()
+        {
+            MediaPlayer.Stop();
         }
     }
 }
